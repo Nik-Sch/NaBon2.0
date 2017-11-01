@@ -2,7 +2,11 @@ package com.github.nik_sch.nabon_20;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.pm.PackageManager;
+import android.location.Criteria;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -12,12 +16,16 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 
-public class MapFragment extends Fragment implements OnMapReadyCallback {
+public class MapFragment extends Fragment implements OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener {
 
   private static final int FINE_LOCATION_REQUEST = 42;
   MapView mMapView;
@@ -63,6 +71,23 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
       return;
     }
     googleMap.setMyLocationEnabled(true);
+
+    LocationManager locationManager = (LocationManager) getActivity().getSystemService(Context
+        .LOCATION_SERVICE);
+    if (locationManager == null)
+      return;
+    Location currentLocation = locationManager.getLastKnownLocation(locationManager
+        .getBestProvider(new Criteria(), false));
+    if (currentLocation == null)
+      return;
+    LatLng location = new LatLng(currentLocation.getLatitude(), currentLocation
+        .getLongitude());
+    LatLng pink_church = new LatLng(46.051394, 14.506169);
+    googleMap.addMarker(new MarkerOptions().position(pink_church).title("Pink Church").snippet
+        ("some address, 1000 Ljubljana")).setTag("pink_church");
+
+    googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(location, 14f));
+    googleMap.setOnInfoWindowClickListener(this);
   }
 
   @Override
@@ -87,5 +112,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
   public void onDestroy() {
     super.onDestroy();
     mMapView.onDestroy();
+  }
+
+  @Override
+  public void onInfoWindowClick(Marker marker) {
   }
 }

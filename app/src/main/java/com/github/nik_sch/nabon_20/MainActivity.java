@@ -89,7 +89,7 @@ public class MainActivity extends AppCompatActivity {
   /**
    * A placeholder fragment containing a simple view.
    */
-  public static class PlaceholderFragment extends Fragment {
+  public static class PlaceholderFragment extends Fragment implements Networking.resultListener {
     /**
      * The fragment argument representing the section number for this
      * fragment.
@@ -115,9 +115,15 @@ public class MainActivity extends AppCompatActivity {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
       View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-      TextView textView = (TextView) rootView.findViewById(R.id.section_label);
-      textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
+      new Networking(getContext()).getRestaurants(this);
       return rootView;
+    }
+
+    @Override
+    public void restaurantsReceived(Networking.Restaurants restaurants) {
+
+      TextView textView = (TextView) getView().findViewById(R.id.section_label);
+      textView.setText(restaurants.toString());
     }
   }
 
