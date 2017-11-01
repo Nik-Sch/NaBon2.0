@@ -1,6 +1,7 @@
 package com.github.nik_sch.nabon_20;
 
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -8,6 +9,7 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -15,8 +17,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity {
 
+  private static final String TAG = "MainActivity";
   /**
    * The {@link android.support.v4.view.PagerAdapter} that will provide
    * fragments for each of the sections. We use a
@@ -52,15 +57,6 @@ public class MainActivity extends AppCompatActivity {
     mViewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
     tabLayout.addOnTabSelectedListener(new TabLayout.ViewPagerOnTabSelectedListener(mViewPager));
 
-//    FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-//    fab.setOnClickListener(new View.OnClickListener() {
-//      @Override
-//      public void onClick(View view) {
-//        Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-//            .setAction("Action", null).show();
-//      }
-//    });
-
   }
 
 
@@ -84,6 +80,17 @@ public class MainActivity extends AppCompatActivity {
     }
 
     return super.onOptionsItemSelected(item);
+  }
+
+  @Override
+  public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    Log.i(TAG, "onPermissionResult");
+    List<Fragment> fragments = getSupportFragmentManager().getFragments();
+    if (fragments != null) {
+      for (Fragment fragment : fragments) {
+        fragment.onRequestPermissionsResult(requestCode, permissions, grantResults);
+      }
+    }
   }
 
   /**
@@ -115,7 +122,7 @@ public class MainActivity extends AppCompatActivity {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
       View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-      new Networking(getContext()).getRestaurants(this);
+//      new Networking(getContext()).getRestaurants(this);
       return rootView;
     }
 
@@ -142,7 +149,7 @@ public class MainActivity extends AppCompatActivity {
       // getItem is called to instantiate the fragment for the given page.
       // Return a PlaceholderFragment (defined as a static inner class below).
       if (position == 0)
-        return MapFragment.newInstance();
+        return MapsFragment.newInstance();
       return PlaceholderFragment.newInstance(position + 1);
     }
 
