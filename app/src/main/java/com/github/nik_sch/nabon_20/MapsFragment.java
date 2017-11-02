@@ -23,6 +23,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.github.nik_sch.nabon_20.restaurantlist.Restaurant;
+import com.github.nik_sch.nabon_20.restaurantlist.RestaurantContent;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
@@ -40,6 +42,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, Google
   private GoogleMap googleMap;
 
   private boolean initializedMap = false;
+  private boolean broadcastReceived = false;
 
   public static MapsFragment newInstance() {
     return new MapsFragment();
@@ -55,7 +58,16 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, Google
     mMapView.onResume();
     MapsInitializer.initialize(getActivity().getApplicationContext());
     mMapView.getMapAsync(this);
+    // TODO: this should be somewhere in activity after fragments had the possibilty to register
+    // broadcastReceiver
+    new Networking(getContext()).downloadRestaurants();
 
+    return rootView;
+  }
+
+  @Override
+  public void onAttach(Context context) {
+    super.onAttach(context);
     LocalBroadcastManager.getInstance(getContext()).registerReceiver(new BroadcastReceiver() {
       @Override
       public void onReceive(Context context, Intent intent) {
@@ -63,26 +75,46 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, Google
         showRestaurants();
       }
     }, new IntentFilter(Networking.EVENT_BROADCAST_RESTAURANTS_AVAILABLE));
-    return rootView;
+    Log.i(TAG, "broadcastReceiver registered");
   }
 
-  class GetRestaurantsTask extends AsyncTask<Integer, Integer, Networking.Restaurants> {
+//  class GetRestaurantsTask extends AsyncTask<Integer, Integer, Restaurant> {
+//
+//    @Override
+//    protected Restaurant doInBackground(Integer... integers) {
+//      return new Networking(getContext()).getRestaurantsFromFile();
+//      Log.i(TAG, "loaded restaurants from file");
+//    }
+//
+//    @Override
+//    protected void onPostExecute(Restaurant restaurants) {
+//      Log.i(TAG, "placing restaurant markers on map");
+//      int c = 0;
+//      long time = System.currentTimeMillis();
+//      for (Restaurant.Restaurant restaurant : restaurants.restaurants) {
+//        try {
+//          LatLng pos = new LatLng(Double.valueOf(restaurant.coordinates[0]), Double.valueOf(restaurant
+//              .coordinates[1]));
+//          googleMap.addMarker(new MarkerOptions()
+//              .position(pos)
+//              .title(restaurant.name)
+//              .snippet(restaurant.address)).setTag(restaurant);
+//          c++;
+//        } catch (NumberFormatException | NullPointerException e) {
+//          e.printStackTrace();
+//        }
+//      }
+//      Log.i(TAG, "placed " + c + " markers on map in " + (System.currentTimeMillis() - time) +
+//          "ms.");
+//    }
+//  }
 
-    @Override
-    protected Networking.Restaurants doInBackground(Integer... integers) {
-      Log.i(TAG, "loading restaurants from file");
-      return new Networking(getContext()).getRestaurantsFromFile();
-    }
-
-    @Override
-    protected void onPostExecute(Networking.Restaurants restaurants) {
+  private void showRestaurants() {
+    if (initializedMap) {
       Log.i(TAG, "placing restaurant markers on map");
       int c = 0;
       long time = System.currentTimeMillis();
-      for (Networking.Restaurants.Restaurant restaurant : restaurants.restaurants) {
-//    LatLng pink_church = new LatLng(46.051394, 14.506169);
-//    googleMap.addMarker(new MarkerOptions().position(pink_church).title("Pink Church").snippet
-//        ("some address, 1000 Ljubljana")).setTag("pink_church");
+      for (Restaurant restaurant : RestaurantContent.ITEMS) {
         try {
           LatLng pos = new LatLng(Double.valueOf(restaurant.coordinates[0]), Double.valueOf(restaurant
               .coordinates[1]));
@@ -98,10 +130,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, Google
       Log.i(TAG, "placed " + c + " markers on map in " + (System.currentTimeMillis() - time) +
           "ms.");
     }
-  }
-
-  private void showRestaurants() {
-    new GetRestaurantsTask().execute(0);
+    broadcastReceived = true;
   }
 
   @SuppressLint("MissingPermission")
@@ -138,7 +167,6 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, Google
       Log.i(TAG, "map already initialized");
       return;
     }
-    initializedMap = true;
     Log.i(TAG, "initializing map");
     boolean locationPermission = ActivityCompat.checkSelfPermission(getActivity()
         .getApplicationContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) ==
@@ -167,6 +195,9 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, Google
 
     googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(zoomLocation, 14f));
     googleMap.setOnInfoWindowClickListener(this);
+    initializedMap = true;
+    if (broadcastReceived)
+      showRestaurants();
   }
 
   @Override

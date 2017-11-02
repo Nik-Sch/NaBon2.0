@@ -15,14 +15,13 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.github.nik_sch.nabon_20.restaurantlist.Restaurant;
+import com.github.nik_sch.nabon_20.restaurantlist.RestaurantContent;
 import com.google.gson.Gson;
 
 import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -50,7 +49,7 @@ public class Networking {
 
     // creating the volley request
     RequestQueue queue = Volley.newRequestQueue(context);
-    String url = "http://na-bon.herokuapp.com/api/Restaurants";
+    String url = "http://na-bon.herokuapp.com/api/Restaurant";
 
     // timing for debug
     final long millis1 = System.currentTimeMillis();
@@ -129,29 +128,27 @@ public class Networking {
     };
 
     // finally send the request
-    queue.add(request);
-    Log.i(TAG, "request added to queue.");
+    if (!context.getFileStreamPath(RESTAURANTS_FILE).exists()) {
+      queue.add(request);
+      Log.i(TAG, "request added to queue.");
+    } else
+      broadcastFinished();
   }
 
   private void broadcastFinished() {
-    Log.i(TAG, "sending finished broadcast");
-    Intent intent = new Intent(EVENT_BROADCAST_RESTAURANTS_AVAILABLE);
-    LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
-  }
+    new Thread(new Runnable() {
+      @Override
+      public void run() {
+        loadRestaurantsFromFile();
+        Log.i(TAG, "sending finished broadcast");
+        Intent intent = new Intent(EVENT_BROADCAST_RESTAURANTS_AVAILABLE);
+        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+      }
+    }).start();
+    }
 
-  public Restaurants getRestaurantsFromFile() {
+  private void loadRestaurantsFromFile() {
     String restString = "{restaurants: []}";
-//    try {
-//      FileInputStream fis = context.openFileInput(RESTAURANTS_FILE);
-//      StringBuilder builder = new StringBuilder();
-//      int c;
-//      while ((c = fis.read()) != -1) {
-//        builder.append((char) c);
-//      }
-//      restString = builder.toString();
-//    } catch (java.io.IOException e) {
-//      e.printStackTrace();
-//    }
     try {
       BufferedReader br = new BufferedReader(new InputStreamReader(context.openFileInput
           (RESTAURANTS_FILE), "utf8"), 8192);
@@ -164,42 +161,15 @@ public class Networking {
     } catch (java.io.IOException e) {
       e.printStackTrace();
     }
-    return new Gson().fromJson(restString, Restaurants.class);
+    Log.i(TAG, "json length: " + restString.length());
+    GsonRestaurants rests = new Gson().fromJson(restString, GsonRestaurants.class);
+    for (Restaurant restaurant : rests.restaurants) {
+      RestaurantContent.addItem(restaurant);
+    }
   }
 
-  // the data structure for the restaurants
-  class Restaurants {
+  private class GsonRestaurants {
     Restaurant[] restaurants;
-
-    @Override
-    public String toString() {
-      return "total: " + restaurants.length + "\nfirst: " + (restaurants.length > 0 ?
-          restaurants[0].toString() : "None");
-    }
-
-    public class Restaurant {
-      String name;
-      int id;
-      String address;
-      String[] telephone;
-      String price;
-      Opening opening;
-      String[][] menu;
-      String[] coordinates;
-//    Collection<String>[] features;
-
-      @Override
-      public String toString() {
-        return "name: " + name + " (id: " + id + ")";
-      }
-    }
-
-    public class Opening {
-      String[] week;
-      String[] saturday;
-      String[] sunday;
-      String notes;
-    }
   }
 
 }
