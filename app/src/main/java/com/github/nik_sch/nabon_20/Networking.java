@@ -49,7 +49,7 @@ public class Networking {
 
     // creating the volley request
     RequestQueue queue = Volley.newRequestQueue(context);
-    String url = "http://na-bon.herokuapp.com/api/Restaurant";
+    String url = "http://na-bon.herokuapp.com/api/Restaurants";
 
     // timing for debug
     final long millis1 = System.currentTimeMillis();

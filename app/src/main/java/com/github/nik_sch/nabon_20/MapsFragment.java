@@ -10,7 +10,6 @@ import android.content.pm.PackageManager;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -58,16 +57,8 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, Google
     mMapView.onResume();
     MapsInitializer.initialize(getActivity().getApplicationContext());
     mMapView.getMapAsync(this);
-    // TODO: this should be somewhere in activity after fragments had the possibilty to register
-    // broadcastReceiver
-    new Networking(getContext()).downloadRestaurants();
 
-    return rootView;
-  }
-
-  @Override
-  public void onAttach(Context context) {
-    super.onAttach(context);
+    // register the BroadcastManager
     LocalBroadcastManager.getInstance(getContext()).registerReceiver(new BroadcastReceiver() {
       @Override
       public void onReceive(Context context, Intent intent) {
@@ -76,38 +67,12 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, Google
       }
     }, new IntentFilter(Networking.EVENT_BROADCAST_RESTAURANTS_AVAILABLE));
     Log.i(TAG, "broadcastReceiver registered");
-  }
+    // TODO: this should be somewhere in activity after fragments had the possibilty to register
+    // broadcastReceiver
+    new Networking(getContext()).downloadRestaurants();
 
-//  class GetRestaurantsTask extends AsyncTask<Integer, Integer, Restaurant> {
-//
-//    @Override
-//    protected Restaurant doInBackground(Integer... integers) {
-//      return new Networking(getContext()).getRestaurantsFromFile();
-//      Log.i(TAG, "loaded restaurants from file");
-//    }
-//
-//    @Override
-//    protected void onPostExecute(Restaurant restaurants) {
-//      Log.i(TAG, "placing restaurant markers on map");
-//      int c = 0;
-//      long time = System.currentTimeMillis();
-//      for (Restaurant.Restaurant restaurant : restaurants.restaurants) {
-//        try {
-//          LatLng pos = new LatLng(Double.valueOf(restaurant.coordinates[0]), Double.valueOf(restaurant
-//              .coordinates[1]));
-//          googleMap.addMarker(new MarkerOptions()
-//              .position(pos)
-//              .title(restaurant.name)
-//              .snippet(restaurant.address)).setTag(restaurant);
-//          c++;
-//        } catch (NumberFormatException | NullPointerException e) {
-//          e.printStackTrace();
-//        }
-//      }
-//      Log.i(TAG, "placed " + c + " markers on map in " + (System.currentTimeMillis() - time) +
-//          "ms.");
-//    }
-//  }
+    return rootView;
+  }
 
   private void showRestaurants() {
     if (initializedMap) {
@@ -184,10 +149,12 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, Google
         return;
       Location currentLocation = locationManager.getLastKnownLocation(locationManager
           .getBestProvider(new Criteria(), false));
-      if (currentLocation == null)
-        return;
-      zoomLocation = new LatLng(currentLocation.getLatitude(), currentLocation
-          .getLongitude());
+      if (currentLocation == null) {
+        Log.i(TAG, "location couldn't be accessed, zooming on Ljubljana");
+        zoomLocation = new LatLng(46.051394, 14.506169);
+      } else
+        zoomLocation = new LatLng(currentLocation.getLatitude(), currentLocation
+            .getLongitude());
     } else {
       Log.i(TAG, "location permission not granted, zooming on Ljubljana");
       zoomLocation = new LatLng(46.051394, 14.506169);
@@ -195,6 +162,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, Google
 
     googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(zoomLocation, 14f));
     googleMap.setOnInfoWindowClickListener(this);
+    Log.i(TAG, "Map initialized.");
     initializedMap = true;
     if (broadcastReceived)
       showRestaurants();
