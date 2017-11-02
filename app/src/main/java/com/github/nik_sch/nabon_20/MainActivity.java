@@ -21,7 +21,7 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-  private static final String TAG = "MainActivity";
+  private static final String TAG = "NB_MainActivity";
   /**
    * The {@link android.support.v4.view.PagerAdapter} that will provide
    * fragments for each of the sections. We use a
@@ -57,6 +57,7 @@ public class MainActivity extends AppCompatActivity {
     mViewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
     tabLayout.addOnTabSelectedListener(new TabLayout.ViewPagerOnTabSelectedListener(mViewPager));
 
+    new Networking(this).downloadRestaurants();
   }
 
 
@@ -96,7 +97,7 @@ public class MainActivity extends AppCompatActivity {
   /**
    * A placeholder fragment containing a simple view.
    */
-  public static class PlaceholderFragment extends Fragment implements Networking.resultListener {
+  public static class PlaceholderFragment extends Fragment {
     /**
      * The fragment argument representing the section number for this
      * fragment.
@@ -122,15 +123,7 @@ public class MainActivity extends AppCompatActivity {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
       View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-//      new Networking(getContext()).getRestaurants(this);
       return rootView;
-    }
-
-    @Override
-    public void restaurantsReceived(Networking.Restaurants restaurants) {
-
-      TextView textView = (TextView) getView().findViewById(R.id.section_label);
-      textView.setText(restaurants.toString());
     }
   }
 

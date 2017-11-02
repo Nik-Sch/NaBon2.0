@@ -2,20 +2,26 @@ package com.github.nik_sch.nabon_20;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -29,7 +35,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 public class MapsFragment extends Fragment implements OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener {
 
   private static final int FINE_LOCATION_REQUEST = 42;
-  private static final String TAG = "MapsFragment";
+  private static final String TAG = "NB_MapsFragment";
   MapView mMapView;
   private GoogleMap googleMap;
 
@@ -49,7 +55,53 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, Google
     mMapView.onResume();
     MapsInitializer.initialize(getActivity().getApplicationContext());
     mMapView.getMapAsync(this);
+
+    LocalBroadcastManager.getInstance(getContext()).registerReceiver(new BroadcastReceiver() {
+      @Override
+      public void onReceive(Context context, Intent intent) {
+        Log.i(TAG, "received broadcast");
+        showRestaurants();
+      }
+    }, new IntentFilter(Networking.EVENT_BROADCAST_RESTAURANTS_AVAILABLE));
     return rootView;
+  }
+
+  class GetRestaurantsTask extends AsyncTask<Integer, Integer, Networking.Restaurants> {
+
+    @Override
+    protected Networking.Restaurants doInBackground(Integer... integers) {
+      Log.i(TAG, "loading restaurants from file");
+      return new Networking(getContext()).getRestaurantsFromFile();
+    }
+
+    @Override
+    protected void onPostExecute(Networking.Restaurants restaurants) {
+      Log.i(TAG, "placing restaurant markers on map");
+      int c = 0;
+      long time = System.currentTimeMillis();
+      for (Networking.Restaurants.Restaurant restaurant : restaurants.restaurants) {
+//    LatLng pink_church = new LatLng(46.051394, 14.506169);
+//    googleMap.addMarker(new MarkerOptions().position(pink_church).title("Pink Church").snippet
+//        ("some address, 1000 Ljubljana")).setTag("pink_church");
+        try {
+          LatLng pos = new LatLng(Double.valueOf(restaurant.coordinates[0]), Double.valueOf(restaurant
+              .coordinates[1]));
+          googleMap.addMarker(new MarkerOptions()
+              .position(pos)
+              .title(restaurant.name)
+              .snippet(restaurant.address)).setTag(restaurant);
+          c++;
+        } catch (NumberFormatException | NullPointerException e) {
+          e.printStackTrace();
+        }
+      }
+      Log.i(TAG, "placed " + c + " markers on map in " + (System.currentTimeMillis() - time) +
+          "ms.");
+    }
+  }
+
+  private void showRestaurants() {
+    new GetRestaurantsTask().execute(0);
   }
 
   @SuppressLint("MissingPermission")
@@ -113,16 +165,14 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, Google
       zoomLocation = new LatLng(46.051394, 14.506169);
     }
 
-    LatLng pink_church = new LatLng(46.051394, 14.506169);
-    googleMap.addMarker(new MarkerOptions().position(pink_church).title("Pink Church").snippet
-        ("some address, 1000 Ljubljana")).setTag("pink_church");
-
     googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(zoomLocation, 14f));
     googleMap.setOnInfoWindowClickListener(this);
   }
 
   @Override
   public void onInfoWindowClick(Marker marker) {
+    Toast.makeText(getContext(), marker.getTag().toString(),
+        Toast.LENGTH_LONG).show();
   }
 
 
