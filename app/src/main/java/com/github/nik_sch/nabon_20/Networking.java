@@ -145,7 +145,7 @@ public class Networking {
         LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
       }
     }).start();
-    }
+  }
 
   private void loadRestaurantsFromFile() {
     String restString = "{restaurants: []}";
@@ -163,9 +163,7 @@ public class Networking {
     }
     Log.i(TAG, "json length: " + restString.length());
     GsonRestaurants rests = new Gson().fromJson(restString, GsonRestaurants.class);
-    for (Restaurant restaurant : rests.restaurants) {
-      RestaurantContent.addItem(restaurant);
-    }
+    RestaurantContent.addAll(rests.restaurants);
   }
 
   private class GsonRestaurants {
