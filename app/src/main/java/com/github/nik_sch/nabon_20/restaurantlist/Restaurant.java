@@ -16,22 +16,18 @@ public class Restaurant implements Comparable<Restaurant> {
   public String address;
   public String[] telephone;
   public String price;
-  private int price_int = -2;
   public Opening opening;
   public String[][] menu;
   public String[] coordinates;
 //  public Collection<String>[] features;
 
   public int getPrice() {
-    if (price_int > -2)
-      return price_int;
     try {
-      String s = price.replace(" EUR", "").replace(",","");
-      price_int = Integer.valueOf(s);
-    } catch (NumberFormatException e) {
-      price_int = -1;
+      String s = price.replace(" EUR", "").replace(",", "");
+      return Integer.valueOf(s);
+    } catch (Exception e) {
+      return -1;
     }
-    return price_int;
   }
 
   @Override
@@ -39,11 +35,15 @@ public class Restaurant implements Comparable<Restaurant> {
     if (obj.getClass() != Restaurant.class)
       return false;
     Restaurant r = (Restaurant) obj;
-    return (name.equals(r.name)
-        && address.equals(r.address)
+    return !(name == null && r.name != null)
+        && ((name == null || name.equals(r.name))
+        && !(address == null && r.address != null)
+        && (address == null || address.equals(r.address))
+        && !(price == null && r.price != null)
+        && (price == null || price.equals(r.price))
+        && !(opening == null && r.opening != null)
+        && (opening == null || opening.equals(r.opening))
         && Arrays.equals(telephone, r.telephone)
-        && price.equals(r.price)
-        && opening.equals(r.opening)
         && Arrays.deepEquals(menu, r.menu)
         && Arrays.equals(coordinates, r.coordinates));
   }
@@ -58,7 +58,7 @@ public class Restaurant implements Comparable<Restaurant> {
     return this.name.compareTo(o.name);
   }
 
-  public class Opening {
+  public static class Opening {
     public String[] week;
     public String[] saturday;
     public String[] sunday;
@@ -72,7 +72,8 @@ public class Restaurant implements Comparable<Restaurant> {
       return (Arrays.equals(week, o.week)
           && Arrays.equals(saturday, o.saturday)
           && Arrays.equals(sunday, o.sunday)
-          && notes.equals(o.notes));
+          && !(notes == null && o.notes != null)
+          && (notes == null || notes.equals(o.notes)));
     }
   }
 

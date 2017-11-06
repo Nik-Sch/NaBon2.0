@@ -67,7 +67,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback, Google
       }
     }, new IntentFilter(Networking.EVENT_BROADCAST_RESTAURANTS_AVAILABLE));
     Log.i(TAG, "broadcastReceiver registered");
-    // TODO: this should be somewhere in activity after fragments had the possibilty to register
+    // TODO: this should be somewhere in activity after fragments had the possibility to register
     // broadcastReceiver
     new Networking(getContext()).downloadRestaurants();
 

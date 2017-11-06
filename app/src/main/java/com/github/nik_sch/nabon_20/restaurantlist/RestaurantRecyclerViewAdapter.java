@@ -153,8 +153,9 @@ public class RestaurantRecyclerViewAdapter extends RecyclerView
       this.max_price = max_price;
     }
 
-    boolean applyFilterOn(Restaurant restaurant) {
-      return !(restaurant.getPrice() < min_price || restaurant.getPrice() > max_price)
+    public boolean applyFilterOn(Restaurant restaurant) {
+      int price = restaurant.getPrice();
+      return !(price < min_price || price > max_price)
           && restaurant.name.toLowerCase().contains(name.toLowerCase())
           && restaurant.address.toLowerCase().contains(address.toLowerCase());
     }

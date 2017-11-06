@@ -166,8 +166,8 @@ public class Networking {
     RestaurantContent.addAll(rests.restaurants);
   }
 
-  private class GsonRestaurants {
-    Restaurant[] restaurants;
+  public class GsonRestaurants {
+    public Restaurant[] restaurants;
   }
 
 }
