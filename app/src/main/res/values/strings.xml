@@ -11,4 +11,5 @@
     <string name="max_price">Max. price:</string>
     <string name="discard">Discard</string>
     <string name="apply">Apply</string>
+    <string name="filter">Filter</string>
 </resources>

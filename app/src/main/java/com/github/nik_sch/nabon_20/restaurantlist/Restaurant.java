@@ -16,10 +16,23 @@ public class Restaurant implements Comparable<Restaurant> {
   public String address;
   public String[] telephone;
   public String price;
+  private int price_int = -2;
   public Opening opening;
   public String[][] menu;
   public String[] coordinates;
 //  public Collection<String>[] features;
+
+  public int getPrice() {
+    if (price_int > -2)
+      return price_int;
+    try {
+      String s = price.replace(" EUR", "").replace(",","");
+      price_int = Integer.valueOf(s);
+    } catch (NumberFormatException e) {
+      price_int = -1;
+    }
+    return price_int;
+  }
 
   @Override
   public boolean equals(Object obj) {

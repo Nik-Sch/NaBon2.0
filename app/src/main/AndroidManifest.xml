@@ -27,7 +27,6 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyDmD42j45Cr5Yyxr1hDKzvYe1g08nmPiqQ" />
 
-        <activity android:name=".restaurantlist.FilterActivity"></activity>
     </application>
 
 </manifest>
