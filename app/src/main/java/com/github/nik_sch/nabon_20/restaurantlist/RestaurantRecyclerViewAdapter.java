@@ -1,5 +1,7 @@
 package com.github.nik_sch.nabon_20.restaurantlist;
 
+import android.os.Handler;
+import android.os.Looper;
 import android.support.v7.util.SortedList;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -26,6 +28,7 @@ public class RestaurantRecyclerViewAdapter extends RecyclerView
 
   private final List<Restaurant> mAllValues;
   private final OnRestaurantListListener mListener;
+  private final RecyclerView mRecyclerView;
   private final SortedList.Callback<Restaurant> sortedListCallback =
       new SortedList.Callback<Restaurant>() {
         @Override
@@ -34,8 +37,14 @@ public class RestaurantRecyclerViewAdapter extends RecyclerView
         }
 
         @Override
-        public void onChanged(int position, int count) {
-
+        public void onChanged(final int position, final int count) {
+          new Handler(Looper.getMainLooper()).post(new Runnable() {
+            @Override
+            public void run() {
+              mRecyclerView.getRecycledViewPool().clear();
+              notifyItemRangeChanged(position, count);
+            }
+          });
         }
 
         @Override
@@ -49,26 +58,44 @@ public class RestaurantRecyclerViewAdapter extends RecyclerView
         }
 
         @Override
-        public void onInserted(int position, int count) {
-          notifyItemRangeInserted(position, count);
+        public void onInserted(final int position, final int count) {
+          new Handler(Looper.getMainLooper()).post(new Runnable() {
+            @Override
+            public void run() {
+              mRecyclerView.getRecycledViewPool().clear();
+              notifyItemRangeInserted(position, count);
+            }
+          });
         }
 
         @Override
-        public void onRemoved(int position, int count) {
-          notifyItemRangeRemoved(position, count);
+        public void onRemoved(final int position, final int count) {
+          new Handler(Looper.getMainLooper()).post(new Runnable() {
+            @Override
+            public void run() {
+              mRecyclerView.getRecycledViewPool().clear();
+              notifyItemRangeRemoved(position, count);
+            }
+          });
         }
 
         @Override
-        public void onMoved(int fromPosition, int toPosition) {
-          notifyItemMoved(fromPosition, toPosition);
+        public void onMoved(final int fromPosition, final int toPosition) {
+          new Handler(Looper.getMainLooper()).post(new Runnable() {
+            @Override
+            public void run() {
+              mRecyclerView.getRecycledViewPool().clear();
+              notifyItemMoved(fromPosition, toPosition);
+            }
+          });
         }
       };
-
   private SortedList<Restaurant> mValues;
 
   public RestaurantRecyclerViewAdapter(List<Restaurant> items, OnRestaurantListListener
-      listener) {
+      listener, RecyclerView recyclerView) {
     // save all items for the filter
+    mRecyclerView = recyclerView;
     mAllValues = items;
     mValues = new SortedList<>(Restaurant.class, sortedListCallback);
 
@@ -102,6 +129,8 @@ public class RestaurantRecyclerViewAdapter extends RecyclerView
 
   @Override
   public int getItemCount() {
+    if (mValues == null)
+      return 0;
     return mValues.size();
   }
 
@@ -123,18 +152,21 @@ public class RestaurantRecyclerViewAdapter extends RecyclerView
           if (filter.applyFilterOn(restaurant))
             values.add(restaurant);
         results.values = values;
+        results.count = values.size();
         return results;
       }
 
       @Override
       protected void publishResults(CharSequence constraint, FilterResults results) {
-        try {
-          mValues = (SortedList<Restaurant>) results.values;
-        } catch (Exception e) {
-          mValues = new SortedList<>(Restaurant.class, sortedListCallback);
-          mValues.addAll(mAllValues);
-        }
-        notifyDataSetChanged();
+//        try {
+//          mValues = (SortedList<Restaurant>) results.values;
+//          notifyDataSetChanged();
+//        } catch (Exception e) {
+//          mValues = new SortedList<>(Restaurant.class, sortedListCallback);
+//          mValues.addAll(mAllValues);
+//          notifyDataSetChanged();
+//        }
+//        notifyDataSetChanged();
       }
     };
   }

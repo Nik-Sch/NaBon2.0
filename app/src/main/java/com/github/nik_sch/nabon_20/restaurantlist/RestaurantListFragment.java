@@ -167,7 +167,8 @@ public class RestaurantListFragment extends Fragment {
 
       @Override
       public void afterTextChanged(Editable s) {
-        applyFilter();
+        if (s.length() > 0)
+          applyFilter();
       }
     });
     ((EditText) view.findViewById(R.id.price_maximum)).addTextChangedListener(new TextWatcher() {
@@ -183,7 +184,8 @@ public class RestaurantListFragment extends Fragment {
 
       @Override
       public void afterTextChanged(Editable s) {
-        applyFilter();
+        if (s.length() > 0)
+          applyFilter();
       }
     });
 
@@ -194,8 +196,7 @@ public class RestaurantListFragment extends Fragment {
       public void onReceive(Context context, Intent intent) {
         Log.i(TAG, "received broadcast");
         RecyclerView recycleView = view.findViewById(R.id.list);
-        adapter =new RestaurantRecyclerViewAdapter(RestaurantContent.ITEMS,
-            mListener);
+        adapter = new RestaurantRecyclerViewAdapter(RestaurantContent.ITEMS, mListener, recyclerView);
         recycleView.setAdapter(adapter);
         ((FastScroller) view.findViewById(R.id.fastscroller)).setRecyclerView(recyclerView);
       }
@@ -205,15 +206,17 @@ public class RestaurantListFragment extends Fragment {
   }
 
   private void applyFilter() {
-    if (adapter == null)
+    EditText min = getView().findViewById(R.id.price_minimum);
+    EditText max = getView().findViewById(R.id.price_maximum);
+    if ((adapter == null)
+        || (min.getText().toString().length() == 0)
+        || (max.getText().toString().length() == 0))
       return;
     FilterObject filterObject = new FilterObject(
         ((EditText) getView().findViewById(R.id.name)).getText().toString(),
         ((EditText) getView().findViewById(R.id.address)).getText().toString(),
-        (int) (Float.valueOf(((EditText) getView().findViewById(R.id.price_minimum)).getText()
-            .toString()) * 100),
-        (int) (Float.valueOf(((EditText) getView().findViewById(R.id.price_maximum)).getText()
-            .toString()) * 100)
+        (int) (Float.valueOf(min.getText().toString()) * 100),
+        (int) (Float.valueOf(max.getText().toString()) * 100)
     );
     String filterString = new Gson().toJson(filterObject, FilterObject.class);
     adapter.getFilter().filter(filterString);

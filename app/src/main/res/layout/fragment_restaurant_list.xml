@@ -34,7 +34,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@drawable/border"
-        android:visibility="visible">
+        android:visibility="gone">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -46,6 +46,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="10dp"
+                android:maxLines="1"
+                android:inputType="textFilter"
                 android:hint="@string/name_filter"
                 android:textSize="18sp"/>
 
@@ -54,6 +56,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="10dp"
+                android:maxLines="1"
+                android:inputType="textFilter"
                 android:hint="@string/city_filter"
                 android:textSize="18sp" />
 
